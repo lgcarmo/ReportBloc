@@ -61,16 +61,58 @@ Sistema web completo para criação e gerenciamento de relatórios de pentest co
 
 ## 🔧 Instalação
 
-### 1. Clone o repositório
+### Método Rápido (Recomendado - Linux/Mac)
+
+O script `setup.sh` automatiza toda a instalação:
+
+```bash
+# Clone o repositório
+git clone https://github.com/lgcarmo/ReportBloc
+cd ReportBloc
+
+# Execute o script de instalação
+chmod +x setup.sh
+./setup.sh
+```
+
+O script irá:
+- ✅ Verificar pré-requisitos (Python 3.8+, Node.js 16+)
+- ✅ Criar ambiente virtual Python
+- ✅ Instalar todas as dependências (Python e Node.js)
+- ✅ Criar arquivo `.env` com SECRET_KEY gerada automaticamente
+- ✅ Configurar Tailwind CSS
+- ✅ Inicializar banco de dados e criar usuário admin padrão
+
+Após a instalação, inicie o sistema com:
+
+```bash
+./start.sh
+```
+
+Isso iniciará backend e frontend automaticamente. Acesse `http://localhost:3000` no navegador.
+
+**Credenciais padrão:**
+- **Usuário**: `admin`
+- **Senha**: `admin123`
+
+⚠️ **IMPORTANTE**: Altere a senha do admin após o primeiro login!
+
+---
+
+### Instalação Manual (Alternativa)
+
+Se preferir instalar manualmente ou estiver no Windows:
+
+#### 1. Clone o repositório
 
 ```bash
 git clone https://github.com/lgcarmo/ReportBloc
 cd ReportBloc
 ```
 
-### 2. Configurar Backend (Python/Flask)
+#### 2. Configurar Backend (Python/Flask)
 
-#### Criar ambiente virtual Python
+**Criar ambiente virtual Python**
 
 ```bash
 # Linux/Mac
@@ -82,7 +124,7 @@ python -m venv venv
 venv\Scripts\activate
 ```
 
-#### Instalar dependências Python
+**Instalar dependências Python**
 
 **⚠️ Windows - Requisito para WeasyPrint**: 
 O WeasyPrint requer o GTK Runtime no Windows. Antes de instalar as dependências Python, baixe e instale:
@@ -98,7 +140,7 @@ pip install -r requirements.txt
 
 **Linux/macOS**: Pode prosseguir diretamente com a instalação das dependências.
 
-#### Configurar variáveis de ambiente
+**Configurar variáveis de ambiente**
 
 ```bash
 cp config_example.env .env
@@ -124,15 +166,15 @@ import secrets
 print(secrets.token_hex(32))
 ```
 
-### 3. Configurar Frontend (React)
+#### 3. Configurar Frontend (React)
 
-#### Instalar dependências Node.js
+**Instalar dependências Node.js**
 
 ```bash
 npm install
 ```
 
-#### Configurar Tailwind CSS
+**Configurar Tailwind CSS**
 
 O Tailwind já está configurado, mas se necessário:
 
@@ -140,7 +182,7 @@ O Tailwind já está configurado, mas se necessário:
 npx tailwindcss init -p
 ```
 
-### 4. Inicializar o banco de dados
+#### 4. Inicializar o banco de dados
 
 Na primeira execução, o banco de dados será criado automaticamente com um usuário administrador padrão:
 
@@ -151,7 +193,21 @@ Na primeira execução, o banco de dados será criado automaticamente com um usu
 
 ## 🚀 Executando o Sistema
 
-### Modo Desenvolvimento
+### Método Rápido (Linux/Mac)
+
+Use o script `start.sh` para iniciar backend e frontend em paralelo:
+
+```bash
+./start.sh
+```
+
+O script iniciará ambos os serviços e você poderá acessar:
+- **Frontend**: `http://localhost:3000`
+- **Backend**: `http://localhost:5001`
+
+Pressione `Ctrl+C` para encerrar ambos os serviços.
+
+### Modo Desenvolvimento Manual
 
 #### Terminal 1 - Backend
 
