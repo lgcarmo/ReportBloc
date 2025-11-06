@@ -152,9 +152,9 @@ export const imagesAPI = {
 // Usuários
 export const usersAPI = {
   list: () => api.get<User[]>('/api/users'),
-  create: (data: { username: string; email: string; password?: string; role?: string; is_ldap?: boolean }) =>
+  create: (data: { username: string; email: string; password?: string; role?: string }) =>
     api.post('/api/users', data),
-  update: (id: number, data: { email?: string; password?: string; role?: string; is_ldap?: boolean }) =>
+  update: (id: number, data: { email?: string; password?: string; role?: string }) =>
     api.put(`/api/users/${id}`, data),
   delete: (id: number) => api.delete(`/api/users/${id}`),
 };

@@ -6,7 +6,6 @@ Sistema web completo para criação e gerenciamento de relatórios de pentest co
 
 ### 🔐 Autenticação
 - Login com credenciais locais (hash bcrypt)
-- Suporte opcional a autenticação LDAP
 - Sistema de registro de usuários com diferentes níveis de acesso (admin, manager, viewer)
 - Controle de sessão seguro
 
@@ -40,7 +39,7 @@ Sistema web completo para criação e gerenciamento de relatórios de pentest co
 ### Backend
 - **Python 3.8+** com Flask
 - **SQLite** (configurável para PostgreSQL)
-- **Autenticação**: bcrypt + LDAP opcional
+- **Autenticação**: bcrypt
 - **Markdown**: python-markdown
 - **PDF**: WeasyPrint para geração de PDFs
 
@@ -85,11 +84,19 @@ venv\Scripts\activate
 
 #### Instalar dependências Python
 
+**⚠️ Windows - Requisito para WeasyPrint**: 
+O WeasyPrint requer o GTK Runtime no Windows. Antes de instalar as dependências Python, baixe e instale:
+
+1. Baixe o **GTK-for-Windows-Runtime-Environment-Installer** de: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
+2. Execute o instalador
+3. Reinicie o terminal/PowerShell
+4. Depois instale as dependências:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-**Nota**: Se encontrar problemas ao instalar `python-ldap` no Windows, você pode removê-lo do `requirements.txt` se não for usar autenticação LDAP.
+**Linux/macOS**: Pode prosseguir diretamente com a instalação das dependências.
 
 #### Configurar variáveis de ambiente
 
@@ -116,14 +123,6 @@ DATABASE_URL=sqlite:///reports.db
 import secrets
 print(secrets.token_hex(32))
 ```
-
-#### Configurar LDAP (opcional)
-
-```bash
-cp ldap_config.example.json ldap_config.json
-```
-
-Edite o arquivo `ldap_config.json` com suas configurações LDAP.
 
 ### 3. Configurar Frontend (React)
 
@@ -298,7 +297,6 @@ ReportBloc/
 ├── tsconfig.json               # Configuração TypeScript
 ├── README.md                   # Este arquivo
 ├── config_example.env          # Exemplo de configuração
-├── ldap_config.example.json    # Exemplo de configuração LDAP
 ├── setup.sh                    # Script de instalação (Linux/Mac)
 ├── .gitignore                  # Arquivos ignorados pelo Git
 │
@@ -339,7 +337,6 @@ ReportBloc/
 
 1. **Configurar o Sistema**
    - Configure variáveis de ambiente
-   - Configure autenticação LDAP (se necessário)
    - Configure as opções de PDF
 
 2. **Criar Templates Base**
@@ -380,25 +377,6 @@ DATABASE_URL=postgresql://usuario:senha@localhost:5432/reports
 pip install psycopg2-binary
 ```
 
-### Autenticação LDAP
-
-1. Configure `ldap_config.json`:
-```json
-{
-  "enabled": true,
-  "server": "servidor.ldap.exemplo.com",
-  "port": "389",
-  "base": "DC=exemplo,DC=com",
-  "username": "usuario@exemplo.com",
-  "password": "senha",
-  "login_attr": "sAMAccountName",
-  "name_attr": "cn",
-  "email_attr": "mail"
-}
-```
-
-2. Teste a conexão em **Administração** → **Configuração LDAP**
-
 ### Variáveis de Ambiente Disponíveis
 
 ```env
@@ -407,12 +385,6 @@ SECRET_KEY=sua-chave-secreta
 
 # Banco de dados
 DATABASE_URL=sqlite:///reports.db
-
-# LDAP (opcional)
-LDAP_URL=ldap://servidor:389
-LDAP_BASE_DN=dc=exemplo,dc=com
-LDAP_BIND_USER=cn=admin,dc=exemplo,dc=com
-LDAP_BIND_PASSWORD=senha
 
 # Produção (opcional)
 DEBUG=False
@@ -504,10 +476,8 @@ volumes:
 **IMPORTANTE**: Nunca commite arquivos com dados sensíveis no repositório!
 
 - Use `config_example.env` como base e crie seu próprio `.env`
-- Use `ldap_config.example.json` como base e crie seu próprio `ldap_config.json`
 - O arquivo `.gitignore` já está configurado para excluir:
   - `.env` (variáveis de ambiente)
-  - `ldap_config.json` (configurações LDAP)
   - `*.db` (bancos de dados)
   - `instance/` (dados do banco)
   - `static/uploads/` (arquivos de upload)
@@ -561,16 +531,6 @@ npm test
 
 ## 🐛 Troubleshooting
 
-### Erro ao instalar python-ldap
-
-**Linux/Mac**:
-```bash
-sudo apt-get install libldap2-dev libsasl2-dev  # Ubuntu/Debian
-brew install openldap  # macOS
-```
-
-**Windows**: Considere usar apenas autenticação local ou instale via conda.
-
 ### Erro "Module not found"
 
 Certifique-se de que o ambiente virtual está ativado e todas as dependências foram instaladas:
@@ -580,14 +540,26 @@ pip install -r requirements.txt
 
 ### Erro ao gerar PDF
 
-Verifique se o WeasyPrint está instalado corretamente:
+#### Windows
+Se você receber erros relacionados ao GTK ao gerar PDFs, instale o **GTK-for-Windows-Runtime-Environment-Installer**:
+1. Baixe de: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
+2. Execute o instalador
+3. Reinicie o terminal e tente novamente
+
+#### Linux
+Pode ser necessário instalar dependências do sistema:
 ```bash
-pip install weasyprint
+# Ubuntu/Debian
+sudo apt-get install python3-cffi python3-brotli libpango-1.0-0 libpangoft2-1.0-0
+
+# Fedora/RHEL
+sudo dnf install python3-cffi python3-brotli pango
 ```
 
-No Linux, pode ser necessário instalar dependências do sistema:
+#### macOS
+O WeasyPrint geralmente funciona sem dependências adicionais. Se houver problemas:
 ```bash
-sudo apt-get install python3-cffi python3-brotli libpango-1.0-0 libpangoft2-1.0-0
+brew install pango gdk-pixbuf libffi
 ```
 
 ### Porta já em uso

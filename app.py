@@ -8,7 +8,6 @@ import os
 import json
 import markdown
 from datetime import datetime
-import ldap
 from dotenv import load_dotenv
 from flask_cors import CORS
 from pdf_generator import PDFGenerator
@@ -28,11 +27,7 @@ app.config['SESSION_COOKIE_SECURE'] = False
 # Habilitar CORS para o React
 CORS(app, supports_credentials=True)
 
-# Configuracoes LDAP
-LDAP_URL = os.getenv('LDAP_URL')
-LDAP_BASE_DN = os.getenv('LDAP_BASE_DN')
-LDAP_BIND_USER = os.getenv('LDAP_BIND_USER')
-LDAP_BIND_PASSWORD = os.getenv('LDAP_BIND_PASSWORD')
+# LDAP removido - não mais suportado
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -197,31 +192,6 @@ class PDFConfig(db.Model):
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
-def authenticate_ldap(username, password):
-    """Autenticação via LDAP"""
-    if not all([LDAP_URL, LDAP_BASE_DN, LDAP_BIND_USER, LDAP_BIND_PASSWORD]):
-        return False
-    
-    try:
-        ldap_client = ldap.initialize(LDAP_URL)
-        ldap_client.set_option(ldap.OPT_REFERRALS, 0)
-        ldap_client.simple_bind_s(LDAP_BIND_USER, LDAP_BIND_PASSWORD)
-        
-        # Buscar usuário
-        search_filter = f"(uid={username})"
-        result = ldap_client.search_s(LDAP_BASE_DN, ldap.SCOPE_SUBTREE, search_filter)
-        
-        if result:
-            user_dn = result[0][0]
-            # Tentar autenticar com as credenciais fornecidas
-            ldap_client.simple_bind_s(user_dn, password)
-            return True
-    except Exception as e:
-        print(f"Erro LDAP: {e}")
-        return False
-    
-    return False
-
 # Rotas da API para o React
 @app.route('/api/user', methods=['GET'])
 def get_current_user():
@@ -241,7 +211,7 @@ def api_login():
     username = data.get('username')
     password = data.get('password')
     
-    # Primeiro, tentar autenticação local
+    # Autenticação local
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
         login_user(user)
@@ -255,29 +225,6 @@ def api_login():
                 'is_admin': getattr(user, 'role', 'viewer') == 'admin',
             },
             'token': 'dummy-token'  # Em produção, usar JWT
-        })
-    
-    # Se não encontrar usuário local, tentar LDAP
-    if authenticate_ldap(username, password):
-        # Criar usuário local se não existir
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            user = User(username=username, email=f"{username}@empresa.com", role='viewer')
-            user.set_password(password)  # Hash da senha LDAP
-            db.session.add(user)
-            db.session.commit()
-        
-        login_user(user)
-        return jsonify({
-            'success': True,
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'role': getattr(user, 'role', 'viewer'),
-                'is_admin': getattr(user, 'role', 'viewer') == 'admin',
-            },
-            'token': 'dummy-token'
         })
     
     return jsonify({'error': 'Credenciais inválidas'}), 401
@@ -939,16 +886,12 @@ def api_create_user():
     email = data.get('email')
     password = data.get('password')
     role = data.get('role', 'viewer')
-    is_ldap = data.get('is_ldap', False)
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Nome de usuário já existe'}), 400
+    if not password:
+        return jsonify({'error': 'Senha obrigatória'}), 400
     user = User(username=username, email=email, role=role)
-    if not is_ldap:
-        if not password:
-            return jsonify({'error': 'Senha obrigatória para usuário local'}), 400
-        user.set_password(password)
-    else:
-        user.password_hash = ''
+    user.set_password(password)
     db.session.add(user)
     db.session.commit()
     return jsonify({'success': True, 'user_id': user.id})
@@ -962,7 +905,7 @@ def api_update_user(user_id):
     data = request.get_json()
     user.email = data.get('email', user.email)
     user.role = data.get('role', user.role)
-    if not data.get('is_ldap', False) and data.get('password'):
+    if data.get('password'):
         user.set_password(data['password'])
     db.session.commit()
     return jsonify({'success': True})
@@ -997,59 +940,6 @@ def api_clear_database():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Erro ao limpar banco: {str(e)}'}), 500
-
-@app.route('/api/ldap-config', methods=['GET'])
-@login_required
-def api_get_ldap_config():
-    if not current_user.role == 'admin':
-        return abort(403)
-    return jsonify({
-        'enabled': os.getenv('LDAP_ENABLED', 'false').lower() == 'true',
-        'name': os.getenv('LDAP_NAME', ''),
-        'server': os.getenv('LDAP_SERVER', ''),
-        'port': os.getenv('LDAP_PORT', '389'),
-        'username': os.getenv('LDAP_USERNAME', ''),
-        'password': os.getenv('LDAP_PASSWORD', ''),
-        'base': os.getenv('LDAP_BASE', ''),
-        'login_attr': os.getenv('LDAP_LOGIN_ATTR', 'sAMAccountName'),
-        'name_attr': os.getenv('LDAP_NAME_ATTR', 'cn'),
-        'email_attr': os.getenv('LDAP_EMAIL_ATTR', 'mail'),
-        'use_ssl': os.getenv('LDAP_USE_SSL', 'false').lower() == 'true',
-        'follow_referrals': os.getenv('LDAP_FOLLOW_REFERRALS', 'false').lower() == 'true',
-    })
-
-@app.route('/api/ldap-config/test', methods=['POST'])
-@login_required
-def api_test_ldap_config():
-    if not current_user.role == 'admin':
-        return abort(403)
-    data = request.get_json()
-    import ldap
-    try:
-        server = data.get('server')
-        port = int(data.get('port', 389))
-        use_ssl = data.get('use_ssl', False)
-        ldap_url = f"ldap{'s' if use_ssl else ''}://{server}:{port}"
-        username = data.get('username')
-        password = data.get('password')
-        follow_referrals = data.get('follow_referrals', False)
-        ldap_client = ldap.initialize(ldap_url)
-        ldap_client.set_option(ldap.OPT_REFERRALS, int(follow_referrals))
-        ldap_client.simple_bind_s(username, password)
-        return jsonify({'success': True})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
-
-@app.route('/api/ldap-config', methods=['PUT'])
-@login_required
-def api_update_ldap_config():
-    if not current_user.role == 'admin':
-        return abort(403)
-    data = request.get_json()
-    import json
-    with open('ldap_config.json', 'w') as f:
-        json.dump(data, f, indent=2)
-    return jsonify({'success': True})
 
 # APIs para Blocos Favoritos
 @app.route('/api/block-templates', methods=['GET'])

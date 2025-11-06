@@ -13,7 +13,6 @@ import PDFConfig from './pages/PDFConfig';
 import LoadingSpinner from './components/LoadingSpinner';
 import Header from './components/Header';
 import UserAdmin from './pages/UserAdmin';
-import LDAPConfig from './pages/LDAPConfig';
 import BlockTemplates from './pages/BlockTemplates';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -113,12 +112,6 @@ const App: React.FC = () => {
       <Route path="/admin/users" element={
         <PrivateRoute>
           <UserAdmin />
-        </PrivateRoute>
-      } />
-      
-      <Route path="/admin/ldap" element={
-        <PrivateRoute>
-          <LDAPConfig />
         </PrivateRoute>
       } />
       

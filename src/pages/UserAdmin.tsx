@@ -17,7 +17,6 @@ const UserAdmin: React.FC = () => {
     email: '',
     password: '',
     role: 'viewer',
-    is_ldap: false,
   });
 
   useEffect(() => {
@@ -55,7 +54,7 @@ const UserAdmin: React.FC = () => {
     try {
       await usersAPI.create(form);
       setShowForm(false);
-      setForm({ username: '', email: '', password: '', role: 'viewer', is_ldap: false });
+      setForm({ username: '', email: '', password: '', role: 'viewer' });
       fetchUsers();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Erro ao criar usuário.');
@@ -69,7 +68,6 @@ const UserAdmin: React.FC = () => {
       email: user.email,
       password: '',
       role: user.role,
-      is_ldap: false, // Não temos flag no backend, só para o formulário
     });
     setShowForm(true);
   };
@@ -82,7 +80,7 @@ const UserAdmin: React.FC = () => {
       await usersAPI.update(editingUser.id, form);
       setEditingUser(null);
       setShowForm(false);
-      setForm({ username: '', email: '', password: '', role: 'viewer', is_ldap: false });
+      setForm({ username: '', email: '', password: '', role: 'viewer' });
       fetchUsers();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Erro ao atualizar usuário.');
@@ -132,7 +130,7 @@ const UserAdmin: React.FC = () => {
           onClick={() => {
             setShowForm(true);
             setEditingUser(null);
-            setForm({ username: '', email: '', password: '', role: 'viewer', is_ldap: false });
+            setForm({ username: '', email: '', password: '', role: 'viewer' });
           }}
         >
           <Plus className="h-5 w-5 mr-2" /> Novo Usuário
@@ -171,7 +169,7 @@ const UserAdmin: React.FC = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Senha {form.is_ldap && <span className="text-xs text-gray-500 dark:text-gray-400">(LDAP não precisa de senha)</span>}</label>
+            <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Senha</label>
             <input
               name="password"
               value={form.password}
@@ -179,8 +177,7 @@ const UserAdmin: React.FC = () => {
               className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               placeholder="Senha"
               type="password"
-              disabled={form.is_ldap}
-              required={!form.is_ldap && !editingUser}
+              required={!editingUser}
             />
           </div>
           <div className="mb-4">
@@ -196,17 +193,6 @@ const UserAdmin: React.FC = () => {
               <option value="manager">Manager</option>
               <option value="viewer">Viewer</option>
             </select>
-          </div>
-          <div className="mb-4 flex items-center gap-6">
-            <label className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-              <input
-                type="checkbox"
-                name="is_ldap"
-                checked={form.is_ldap}
-                onChange={handleInput}
-              />
-              Usuário LDAP
-            </label>
           </div>
           <div className="flex gap-4">
             <button

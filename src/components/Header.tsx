@@ -102,12 +102,6 @@ const Header: React.FC = () => {
                   >
               Configurações PDF
             </Link>
-                  <Link
-                    to="/admin/ldap"
-                    className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900 hover:text-primary-700 dark:hover:text-primary-300"
-                  >
-                    Configuração LDAP
-                  </Link>
                   {/* Adicione outros links de administração aqui futuramente */}
                 </div>
               </div>
