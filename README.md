@@ -2,6 +2,8 @@
 
 Sistema web completo para criação e gerenciamento de relatórios de pentest com templates modulares, blocos favoritos reutilizáveis e geração de PDFs profissionais.
 
+![ReportBloc](https://github.com/lgcarmo/ReportBloc/blob/main/ReportBloc.png)
+
 ## 🚀 Funcionalidades
 
 ### 🔐 Autenticação
