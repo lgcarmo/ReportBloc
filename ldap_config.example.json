@@ -1,0 +1,15 @@
+{
+  "base": "DC=exemplo,DC=com",
+  "email_attr": "mail",
+  "enabled": false,
+  "follow_referrals": false,
+  "login_attr": "sAMAccountName",
+  "name": "Configuração LDAP",
+  "name_attr": "cn",
+  "password": "",
+  "port": "389",
+  "server": "",
+  "use_ssl": false,
+  "username": ""
+}
+
